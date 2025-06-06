@@ -7,20 +7,19 @@ interface PaginationProps {
     totalPages: number;
 }
 
-export default function Pagination({ currentPage, onPageChange, totalPages }: PaginationProps) {
+export default function Pagination({currentPage, onPageChange, totalPages}: PaginationProps) {
     return (
         <ReactPaginate
             pageCount={totalPages}
             forcePage={currentPage - 1}
             onPageChange={(e) => onPageChange(e.selected + 1)}
             containerClassName={css.pagination}
-            pageClassName={''}
-            pageLinkClassName={''}
             activeClassName={css.active}
-            previousClassName={''}
-            nextClassName={''}
-            previousLinkClassName={''}
-            nextLinkClassName={''}
+            previousClassName={currentPage === 1 ? css.disabled : ''}
+            nextClassName={currentPage === totalPages ? css.disabled : ''}
+            disabledClassName={css.disabled}
+            nextLabel="→"
+            previousLabel="←"
         />
     );
 }

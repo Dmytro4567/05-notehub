@@ -1,19 +1,23 @@
-import {useState} from 'react';
+import { useState } from 'react';
+import { createPortal } from 'react-dom';
 import css from './App.module.css';
 import NoteList from '../NoteList/NoteList';
 import Pagination from '../Pagination/Pagination';
 import SearchBox from '../SearchBox/SearchBox';
 import NoteModal from '../NoteModal/NoteModal';
-import {keepPreviousData, useQuery} from '@tanstack/react-query';
-import {fetchNotes} from '../../services/noteService';
-import type {Note} from "../../types/note.ts";
-import {useDebounce} from 'use-debounce';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import { fetchNotes, deleteNote, createNote } from '../../services/noteService';
+import type { Note } from '../../types/note.ts';
+import { useDebounce } from 'use-debounce';
 
 export default function App() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [debouncedSearch] = useDebounce(search, 500);
+    const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
+
+    const queryClient = useQueryClient();
 
     const {
         data,
@@ -26,10 +30,23 @@ export default function App() {
         placeholderData: keepPreviousData,
     });
 
+    const handleDelete = async (id: string) => {
+        setDeletingNoteId(id);
+        await deleteNote(id);
+        await queryClient.invalidateQueries({ queryKey: ['notes'] });
+        setDeletingNoteId(null);
+    };
+
+    const handleCreate = async (values: Pick<Note, 'title' | 'content' | 'tag'>) => {
+        await createNote(values);
+        await queryClient.invalidateQueries({ queryKey: ['notes'] });
+        setIsModalOpen(false);
+    };
+
     return (
         <div className={css.app}>
             <header className={css.toolbar}>
-                <SearchBox value={search} onChange={setSearch}/>
+                <SearchBox value={search} onChange={setSearch} />
                 {isSuccess && data.totalPages > 1 && (
                     <Pagination
                         currentPage={page}
@@ -46,10 +63,19 @@ export default function App() {
             {isError && <p>Error loading notes. Please try again later.</p>}
 
             {isSuccess && data.notes.length > 0 && (
-                <NoteList search={debouncedSearch} page={page}/>
+                <NoteList
+                    notes={data.notes}
+                    onDelete={handleDelete}
+                    deletingNoteId={deletingNoteId}
+                />
             )}
 
-            {isModalOpen && <NoteModal onClose={() => setIsModalOpen(false)}/>}
+            {isModalOpen && createPortal(
+                <NoteModal onClose={() => setIsModalOpen(false)} onSubmit={handleCreate} />,
+                document.body
+            )}
         </div>
     );
 }
+
+
