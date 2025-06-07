@@ -14,8 +14,8 @@ export default function App() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
-    const [debouncedSearch] = useDebounce(search, 500);
     const [perPage] = useState(12);
+    const [debouncedSearch] = useDebounce(search, 500);
 
     const {
         data,
@@ -23,15 +23,20 @@ export default function App() {
         isError,
         isSuccess,
     } = useQuery<{ notes: Note[]; totalPages: number }>({
-        queryKey: ['notes', page, debouncedSearch],
+        queryKey: ['notes', debouncedSearch, page],
         queryFn: () => fetchNotes(debouncedSearch, page, perPage),
         placeholderData: keepPreviousData,
     });
 
+    const handleSearchChange = (value: string) => {
+        setSearch(value);
+        setPage(1);
+    };
+
     return (
         <div className={css.app}>
             <header className={css.toolbar}>
-                <SearchBox value={search} onChange={setSearch}/>
+                <SearchBox value={search} onChange={handleSearchChange}/>
                 {isSuccess && data.totalPages > 1 && (
                     <Pagination
                         currentPage={page}
@@ -51,10 +56,11 @@ export default function App() {
                 <NoteList notes={data.notes}/>
             )}
 
-            {isModalOpen && createPortal(
-                <NoteModal onClose={() => setIsModalOpen(false)}/>,
-                document.body
-            )}
+            {isModalOpen &&
+                createPortal(
+                    <NoteModal onClose={() => setIsModalOpen(false)}/>,
+                    document.body
+                )}
         </div>
     );
 }
