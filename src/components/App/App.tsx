@@ -6,18 +6,18 @@ import Pagination from '../Pagination/Pagination';
 import SearchBox from '../SearchBox/SearchBox';
 import NoteModal from '../NoteModal/NoteModal';
 import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
-import { fetchNotes, deleteNote, createNote } from '../../services/noteService';
-import type { Note } from '../../types/note.ts';
+import { fetchNotes, deleteNote } from '../../services/noteService';
+import type { Note } from '../../types/note';
 import { useDebounce } from 'use-debounce';
 
 export default function App() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
-    const [debouncedSearch] = useDebounce(search, 500);
     const [deletingNoteId, setDeletingNoteId] = useState<number | null>(null);
-
+    const [debouncedSearch] = useDebounce(search, 500);
     const queryClient = useQueryClient();
+    const perPage = 12;
 
     const {
         data,
@@ -25,8 +25,8 @@ export default function App() {
         isError,
         isSuccess,
     } = useQuery<{ notes: Note[]; totalPages: number }>({
-        queryKey: ['notes', page, debouncedSearch],
-        queryFn: () => fetchNotes(page, 12, debouncedSearch),
+        queryKey: ['notes', page, debouncedSearch, perPage],
+        queryFn: () => fetchNotes(debouncedSearch, page, perPage),
         placeholderData: keepPreviousData,
     });
 
@@ -35,12 +35,6 @@ export default function App() {
         await deleteNote(id);
         await queryClient.invalidateQueries({ queryKey: ['notes'] });
         setDeletingNoteId(null);
-    };
-
-    const handleCreate = async (values: Pick<Note, 'title' | 'content' | 'tag'>) => {
-        await createNote(values);
-        await queryClient.invalidateQueries({ queryKey: ['notes'] });
-        setIsModalOpen(false);
     };
 
     return (
@@ -72,15 +66,9 @@ export default function App() {
 
             {isModalOpen &&
                 createPortal(
-                    <NoteModal
-                        onClose={() => setIsModalOpen(false)}
-                        onSubmit={handleCreate}
-                    />,
+                    <NoteModal onClose={() => setIsModalOpen(false)} />,
                     document.body
                 )}
         </div>
     );
 }
-
-
-
