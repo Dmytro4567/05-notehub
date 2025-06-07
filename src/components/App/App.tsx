@@ -1,5 +1,4 @@
 import {useState} from 'react';
-import {createPortal} from 'react-dom';
 import css from './App.module.css';
 import NoteList from '../NoteList/NoteList';
 import Pagination from '../Pagination/Pagination';
@@ -56,11 +55,7 @@ export default function App() {
                 <NoteList notes={data.notes}/>
             )}
 
-            {isModalOpen &&
-                createPortal(
-                    <NoteModal onClose={() => setIsModalOpen(false)}/>,
-                    document.body
-                )}
+            {isModalOpen && <NoteModal onClose={() => setIsModalOpen(false)}/>}
         </div>
     );
 }
