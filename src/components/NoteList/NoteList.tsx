@@ -3,8 +3,8 @@ import type {Note} from '../../types/note';
 
 interface NoteListProps {
     notes: Note[];
-    onDelete: (id: string) => void;
-    deletingNoteId: string | null;
+    onDelete: (id: number) => void;
+    deletingNoteId: number | null;
 }
 
 export default function NoteList({notes, onDelete, deletingNoteId}: NoteListProps) {

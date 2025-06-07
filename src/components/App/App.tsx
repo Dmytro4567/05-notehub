@@ -15,7 +15,7 @@ export default function App() {
     const [search, setSearch] = useState('');
     const [page, setPage] = useState(1);
     const [debouncedSearch] = useDebounce(search, 500);
-    const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null);
+    const [deletingNoteId, setDeletingNoteId] = useState<number | null>(null);
 
     const queryClient = useQueryClient();
 
@@ -30,7 +30,7 @@ export default function App() {
         placeholderData: keepPreviousData,
     });
 
-    const handleDelete = async (id: string) => {
+    const handleDelete = async (id: number) => {
         setDeletingNoteId(id);
         await deleteNote(id);
         await queryClient.invalidateQueries({ queryKey: ['notes'] });
@@ -70,12 +70,17 @@ export default function App() {
                 />
             )}
 
-            {isModalOpen && createPortal(
-                <NoteModal onClose={() => setIsModalOpen(false)} onSubmit={handleCreate} />,
-                document.body
-            )}
+            {isModalOpen &&
+                createPortal(
+                    <NoteModal
+                        onClose={() => setIsModalOpen(false)}
+                        onSubmit={handleCreate}
+                    />,
+                    document.body
+                )}
         </div>
     );
 }
+
 
 

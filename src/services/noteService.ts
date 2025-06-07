@@ -16,12 +16,12 @@ export const fetchNotes = async (
     perPage = 12,
     search = ''
 ): Promise<{ notes: Note[]; totalPages: number }> => {
-    const params: Record<string, string | number> = { page, perPage };
+    const params: Record<string, string | number> = {page, perPage};
     if (search.trim()) {
         params.search = search;
     }
 
-    const response = await instance.get('', { params });
+    const response = await instance.get('', {params});
     return response.data;
 };
 
@@ -33,7 +33,7 @@ export const createNote = async (
     return response.data;
 };
 
-export const deleteNote = async (id: string): Promise<Note> => {
+export const deleteNote = async (id: number): Promise<Note> => {
     const response = await instance.delete(`/${id}`);
     return response.data;
 };
